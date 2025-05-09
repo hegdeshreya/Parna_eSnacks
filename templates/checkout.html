@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Sellifa Snacks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Sellifa Snacks</h1>
+            <nav class="flex items-center">
+                <a href="{{ url_for('index') }}" class="px-4">Home</a>
+                <a href="{{ url_for('cart') }}" class="px-4">Cart</a>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin') }}" class="px-4">Admin</a>
+                    {% endif %}
+                    <span class="px-4">Welcome, {{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="px-4">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="px-4">Login</a>
+                    <a href="{{ url_for('register') }}" class="px-4">Register</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    <div class="container mx-auto p-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% if success %}
+            <h2 class="text-3xl font-bold mb-4">Order Confirmed!</h2>
+            <p class="text-gray-600 mb-6">Thank you for your purchase! Your order has been successfully placed.</p>
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                <h3 class="text-xl font-semibold mb-2">Order Summary</h3>
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2">Image</th>
+                            <th class="text-left py-2">Product</th>
+                            <th class="text-left py-2">Price (₹)</th>
+                            <th class="text-left py-2">Quantity</th>
+                            <th class="text-left py-2">Total (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                            <tr class="border-b">
+                                <td class="py-2">
+                                    {% if item.image_url %}
+                                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="w-16 h-16 object-cover rounded">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                            <span class="text-gray-500">No Image</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2">{{ item.name }}</td>
+                                <td class="py-2">{{ item.price }}</td>
+                                <td class="py-2">{{ item.quantity }}</td>
+                                <td class="py-2">{{ item.price * item.quantity }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="4" class="py-2 text-right font-bold">Total:</td>
+                            <td class="py-2 font-bold">₹{{ total }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <a href="{{ url_for('index') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Continue Shopping</a>
+        {% else %}
+            <h2 class="text-3xl font-bold mb-4">Checkout</h2>
+            <p class="text-gray-600 mb-6">Please provide your delivery and payment details to complete your order.</p>
+            <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+                <h3 class="text-xl font-semibold mb-2">Order Summary</h3>
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-2">Image</th>
+                            <th class="text-left py-2">Product</th>
+                            <th class="text-left py-2">Price (₹)</th>
+                            <th class="text-left py-2">Quantity</th>
+                            <th class="text-left py-2">Total (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart_items %}
+                            <tr class="border-b">
+                                <td class="py-2">
+                                    {% if item.image_url %}
+                                        <img src="{{ item.image_url }}" alt="{{ item.name }}" class="w-16 h-16 object-cover rounded">
+                                    {% else %}
+                                        <div class="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                            <span class="text-gray-500">No Image</span>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-2">{{ item.name }}</td>
+                                <td class="py-2">{{ item.price }}</td>
+                                <td class="py-2">{{ item.quantity }}</td>
+                                <td class="py-2">{{ item.price * item.quantity }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="4" class="py-2 text-right font-bold">Total:</td>
+                            <td class="py-2 font-bold">₹{{ total }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <form action="{{ url_for('checkout') }}" method="POST" class="bg-white rounded-lg shadow-md p-6 space-y-4">
+                <h3 class="text-xl font-semibold mb-2">Delivery Details</h3>
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input type="text" id="name" name="name" required class="mt-1 block w-full border rounded px-3 py-2">
+                </div>
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Delivery Address</label>
+                    <textarea id="address" name="address" required class="mt-1 block w-full border rounded px-3 py-2"></textarea>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Payment Details</h3>
+                <div>
+                    <label for="payment_method" class="block text-sm font-medium text-gray-700">Payment Method</label>
+                    <select id="payment_method" name="payment_method" required class="mt-1 block w-full border rounded px-3 py-2">
+                        <option value="credit_card">Credit/Debit Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="cod">Cash on Delivery</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Place Order</button>
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

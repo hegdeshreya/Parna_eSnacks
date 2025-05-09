@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sellifa Snacks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-600 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Parna Home Snacks</h1>
+            <nav class="flex items-center">
+                <a href="{{ url_for('index') }}" class="px-4">Home</a>
+                <a href="{{ url_for('cart') }}" class="px-4">Cart</a>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin') }}" class="px-4">Admin</a>
+                    {% endif %}
+                    <span class="px-4">Welcome, {{ current_user.username }}</span>
+                    <a href="{{ url_for('logout') }}" class="px-4">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="px-4">Login</a>
+                    <a href="{{ url_for('register') }}" class="px-4">Register</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    <div class="container mx-auto p-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="bg-{{ 'green' if category == 'success' else 'red' }}-100 border-{{ 'green' if category == 'success' else 'red' }}-400 text-{{ 'green' if category == 'success' else 'red' }}-700 px-4 py-3 rounded mb-4">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <h2 class="text-3xl font-bold mb-4">Welcome to Sellifa Snacks</h2>
+        <p class="text-gray-600 mb-6">Explore our delicious range of Indian snacks, from crispy Banana Chips to sweet Mysore Pak!</p>
+        <h3 class="text-2xl font-semibold mb-6">Our Snacks</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in products %}
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    {% if product.image_url %}
+                        <img src="{{ product.image_url }}" alt="{{ product.name }}" class="w-full h-48 object-cover rounded mb-4">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 rounded mb-4 flex items-center justify-center">
+                            <span class="text-gray-500">No Image</span>
+                        </div>
+                    {% endif %}
+                    <h4 class="text-lg font-semibold">{{ product.name }}</h4>
+                    <p class="text-gray-600">Category: {{ product.category }}</p>
+                    <p class="text-gray-800 font-bold">₹{{ product.price }}</p>
+                    <p class="text-gray-600">In Stock: {{ product.quantity }}</p>
+                    <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST" class="mt-4">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.quantity }}" class="w-16 border rounded px-2 py-1">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add to Cart</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
